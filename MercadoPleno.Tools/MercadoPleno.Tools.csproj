@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<AzureFunctionsVersion>v4</AzureFunctionsVersion>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Include="..\..\..\MPSTI.PlenoSoft.PlenoInvestidor\src\PlenoInvestidor.CrossProject\Extensions\AggregatorExtension.cs" Link="Application\Code\AggregatorExtension.cs" />
+	  <Compile Include="..\..\..\MPSTI.PlenoSoft.PlenoInvestidor\src\PlenoInvestidor.CrossProject\Extensions\IDataReaderExtension.cs" Link="Application\Code\IDataReaderExtension.cs" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.OpenApi" Version="0.7.2-preview" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
+		<PackageReference Include="Dapper" Version="2.0.123" />
+		<PackageReference Include="Refit" Version="6.3.2" />
+		<PackageReference Include="RestSharp" Version="107.3.0" />
+		<PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="107.3.0" />
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+		<PackageReference Include="System.data.SQLite.Core" Version="1.0.115.5" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="host.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="local.settings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="Certificados\ServiceBus\" />
+	</ItemGroup>
+</Project>
