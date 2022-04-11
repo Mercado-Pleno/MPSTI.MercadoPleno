@@ -5,82 +5,90 @@ using MercadoPleno.Tools.Core.Proxies.ZeroSSL;
 using MercadoPleno.Tools.Core.Proxies.ZeroSSL.Dtos;
 using MercadoPleno.Tools.Core.Repositories;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MercadoPleno.Tools.Core.Services
 {
-	public class CertificadoService : BaseClass
+	public abstract class CertificadoService : BaseClass
 	{
-		private readonly CsrGenerator _csrGenerator;
-		private readonly ZeroSslProxy _zeroSslProxy;
+		protected readonly CsrGenerator _csrGenerator;
+		protected readonly ZeroSslProxy _zeroSslProxy;
+		protected readonly CertificadoRepository _certificadoRepository;
 
 		public CertificadoService(IServiceProvider serviceProvider) : base(serviceProvider)
 		{
 			_csrGenerator = GetService<CsrGenerator>();
 			_zeroSslProxy = GetService<ZeroSslProxy>();
+			_certificadoRepository = GetService<CertificadoRepository>();
 		}
 
-		public async Task<int> RenovarCertificadoExpirando()
+		protected async Task<List<ZeroSslCertificate>> Processar(IEnumerable<Usuario> usuarios)
 		{
-			var certificadoRepository = GetService<CertificadoRepository>();
-			var usuarios = await certificadoRepository.ObterUsuariosZeroSsl();
-			return await Renovar(usuarios);
-		}
-
-		private async Task<int> Renovar(IEnumerable<Usuario> usuarios)
-		{
-			var count = 0;
+			var result = new List<ZeroSslCertificate>();
 			foreach (var usuario in usuarios)
-				count += await Renovar(usuario);
-			return count;
+			{
+				var csrResponse = await Processar(usuario);
+				result.AddRange(csrResponse);
+			}
+			return result;
 		}
 
-		private async Task<int> Renovar(Usuario usuario)
+		protected async Task<IEnumerable<ZeroSslCertificate>> Processar(Usuario usuario)
 		{
-			var count = 0;
+			var result = new List<ZeroSslCertificate>();
 			foreach (var user in usuario.ZeroSslUsers)
-				count += await Renovar(user);
-			return count;
+			{
+				var csrResponse = await Processar(user);
+				result.AddRange(csrResponse);
+			}
+			return result;
 		}
 
-		private async Task<int> Renovar(ZeroSslUser user)
+		protected async Task<IEnumerable<ZeroSslCertificate>> Processar(ZeroSslUser user)
 		{
-			var count = 0;
+			var result = new List<ZeroSslCertificate>();
 			var certificados = await _zeroSslProxy.ObterCertificados(user.ApiKey);
 			foreach (var certificado in certificados.Results)
 			{
-				if (await Renovar(certificado, user))
-					count++;
+				var csrResponse = await Processar(user, certificado);
+				result.Add(csrResponse);
 			}
-			return count;
+			return result.Where(c => c != null);
 		}
 
-		private async Task<bool> Renovar(ZeroSslCertificado certificado, ZeroSslUser user)
+		protected abstract Task<ZeroSslCertificate> Processar(ZeroSslUser user, ZeroSslCertificado certificado);
+
+		protected async Task<ZeroSslCertificate> RemoverCetificado(ZeroSslUser user, ZeroSslCertificado certificado)
 		{
-			if (certificado.Status == ZeroSslStatus.Expiring_soon)
+			await _zeroSslProxy.RevogarCertificado(user.ApiKey, certificado.Id);
+			await _zeroSslProxy.CancelarCertificado(user.ApiKey, certificado.Id);
+			await _zeroSslProxy.RemoverCertificado(user.ApiKey, certificado.Id);
+			return new ZeroSslCertificate { CertificateId = certificado.Id };
+		}
+
+		protected async Task<ZeroSslCertificate> CriarCertificado(ZeroSslUser user, string domain)
+		{
+			var csrResponse = await _csrGenerator.GerarCertificado(user.Usuario.ZeroSslConfig, domain);
+			var zeroSslVerificaRequest = new ZeroSslVerificaRequest { CSR = csrResponse.CertificateRequest };
+
+			var zeroSslResponse = await _zeroSslProxy.VerificarCertificado(user.ApiKey, zeroSslVerificaRequest.CSR);
+			if (zeroSslResponse.Valid)
 			{
-				var domain = certificado.Common_name;
+				var zeroSslCreateRequest = new ZeroSslCriaRequest { Domain = domain, CSR = csrResponse.CertificateRequest };
+				var zeroSslCertificadoResponse = await _zeroSslProxy.CriarCertificado(user.ApiKey, zeroSslCreateRequest);
 
-				var csrResponse = await _csrGenerator.GerarCertificado(user.Usuario.ZeroSslConfig, domain);
-				var zeroSslVerificaRequest = new ZeroSslVerificaRequest { CSR = csrResponse.Certificate };
+				var zeroSslValidaRequest = new ZeroSslValidaRequest { EMail = zeroSslCertificadoResponse.GetValidationEMail() };
+				var zeroSslValidaResponse = await _zeroSslProxy.ValidarCertificado(user.ApiKey, zeroSslCertificadoResponse.Id, zeroSslValidaRequest);
 
-				var zeroSslResponse = await _zeroSslProxy.VerificarCertificado(user.ApiKey, zeroSslVerificaRequest.CSR);
-				if (zeroSslResponse.Valid)
-				{
-					var zeroSslCreateRequest = new ZeroSslCriaRequest { Domain = domain, CSR = csrResponse.Certificate };
-					var zeroSslCertificadoResponse = await _zeroSslProxy.CriarCertificado(user.ApiKey, zeroSslCreateRequest);
-
-					var zeroSslValidaRequest = new ZeroSslValidaRequest { EMail = zeroSslCertificadoResponse.GetValidationEMail() };
-					var zeroSslValidaResponse = await _zeroSslProxy.ValidarCertificado(user.ApiKey, zeroSslCertificadoResponse.Id, zeroSslValidaRequest);
-
-					var zeroSslStatusResponse = await _zeroSslProxy.ObterStatusCertificado(user.ApiKey, zeroSslCertificadoResponse.Id);
-
-					return (zeroSslValidaResponse.Status == ZeroSslStatus.Draft) || zeroSslStatusResponse.Validation_completed;
-				}
+				csrResponse.ZeroSslUserId = user.ZeroSslUserId;
+				csrResponse.CertificateId = zeroSslCertificadoResponse.Id;
+				csrResponse.Status = zeroSslValidaResponse.Status;
+				return csrResponse;
 			}
 
-			return false;
+			return null;
 		}
 	}
 }

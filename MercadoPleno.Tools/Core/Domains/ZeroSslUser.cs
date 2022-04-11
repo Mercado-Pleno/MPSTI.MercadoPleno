@@ -1,4 +1,6 @@
-﻿namespace MercadoPleno.Tools.Core.Domains
+﻿using System.Collections.Generic;
+
+namespace MercadoPleno.Tools.Core.Domains
 {
 	public class ZeroSslUser
 	{
@@ -8,5 +10,6 @@
 		public string Password { get; set; }
 		public string ApiKey { get; set; }
 		public Usuario Usuario { get; set; }
+		public List<ZeroSslCertificate> ZeroSslCertificates { get; set; } = new List<ZeroSslCertificate>();
 	}
 }

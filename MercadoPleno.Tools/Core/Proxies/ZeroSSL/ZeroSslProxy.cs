@@ -24,14 +24,14 @@ namespace MercadoPleno.Tools.Core.Proxies.ZeroSSL
 		{
 			var request = new RestRequest("/validation/csr", Method.Post) { AlwaysMultipartFormData = true };
 			request.AddParameter("csr", csr);
-			var response = await ExecuteAsync<ZeroSslCertificado>(request, apiKey);
+			var response = await ExecuteAsync<ZeroSslResponse>(request, apiKey);
 			return response.Data;
 		}
 
 		// Post /certificates?access_key={apikey}
 		public async Task<ZeroSslCertificado> CriarCertificado(string apiKey, ZeroSslCriaRequest body)
 		{
-			var request = new RestRequest("/certificates/{id}", Method.Post) { AlwaysMultipartFormData = true };
+			var request = new RestRequest("/certificates", Method.Post) { AlwaysMultipartFormData = true };
 			request.AddParameter("strict_domains", body.StrictDomains);
 			request.AddParameter("certificate_validity_days", body.ValidityDays);
 			request.AddParameter("certificate_domains", body.Domain);
@@ -72,12 +72,12 @@ namespace MercadoPleno.Tools.Core.Proxies.ZeroSSL
 		}
 
 		// Get /certificates/{id}/download/return?access_key={apikey}&include_cross_signed=0
-		public async Task<string> ObterCertificadoInLine(string apiKey, string id)
+		public async Task<ZeroSslCrtResponse> ObterCertificadoInLine(string apiKey, string id)
 		{
 			var request = new RestRequest("/certificates/{id}/download/return", Method.Get);
 			request.AddOrUpdateParameter("id", id, ParameterType.UrlSegment);
 			request.AddQueryParameter("include_cross_signed", 0);
-			var response = await ExecuteAsync<string>(request, apiKey);
+			var response = await ExecuteAsync<ZeroSslCrtResponse>(request, apiKey);
 			return response.Data;
 		}
 
