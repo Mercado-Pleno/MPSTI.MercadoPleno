@@ -55,7 +55,7 @@ namespace MercadoPleno.Tools.Core.Repositories
 					zeroSslUser.Usuario = usuario;
 					usuario.ZeroSslUsers.Add(zeroSslUser);
 
-					foreach (var zeroSslCertificate in zeroSslCertificates.Where(c=>c.ZeroSslUserId == zeroSslUser.ZeroSslUserId))
+					foreach (var zeroSslCertificate in zeroSslCertificates.Where(c => c.ZeroSslUserId == zeroSslUser.ZeroSslUserId && !string.IsNullOrWhiteSpace(c.Domain)))
 					{
 						zeroSslCertificate.ZeroSslUser = zeroSslUser;
 						zeroSslUser.ZeroSslCertificates.Add(zeroSslCertificate);

@@ -30,7 +30,7 @@ Select
 From Usuario U
 Inner Join ZeroSslConfig      Cfg On Cfg.UsuarioId = U.Id
 Inner Join ZeroSslUser        ZSU On ZSU.UsuarioId = U.Id
-Left  Join ZeroSslCertificate ZSC On ZSU.ZeroSslUserId = ZSU.Id
+Left  Join ZeroSslCertificate ZSC On ZSC.ZeroSslUserId = ZSU.Id
 ";
 
         public static string CmdSqlSelectUsuariosZeroSslPorUserName => CmdSqlSelectUsuariosZeroSsl + @"
