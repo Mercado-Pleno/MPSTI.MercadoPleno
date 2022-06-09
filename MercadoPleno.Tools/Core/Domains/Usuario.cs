@@ -4,7 +4,7 @@ namespace MercadoPleno.Tools.Core.Domains
 {
 	public class Usuario
 	{
-		public long UsuarioId { get; set; }
+		public long Id { get; set; }
 		public string Username { get; set; }
 		public string Senha { get; set; }
 		public CsrConfig ZeroSslConfig { get; set; }

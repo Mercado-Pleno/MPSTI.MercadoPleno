@@ -4,10 +4,11 @@
 	{
 		public static string CmdSqlSelectUsuariosZeroSsl => @"
 Select
-    U.Id As UsuarioId
+    U.Id
     , U.Username
     , U.Senha
-    , Cfg.Id As EmpresaId
+    , Cfg.Id
+    , Cfg.UsuarioId
     , Cfg.Pais
     , Cfg.Estado
     , Cfg.Cidade
@@ -15,11 +16,13 @@ Select
     , Cfg.Departamento
     , Cfg.SufixDNS
     , Cfg.KeySize
-    , ZSU.Id As ZeroSslUserId
+    , ZSU.Id
+    , ZSU.UsuarioId
     , ZSU.Login
     , ZSU.Password
     , ZSU.ApiKey
-    , ZSC.Id As ZeroSslCertificateId
+    , ZSC.Id
+    , ZSC.ZeroSslUserId
     , ZSC.CertificateId
     , ZSC.Domain
     , ZSC.Status
@@ -39,7 +42,7 @@ Where (U.Username = @userName)
 
         public static string CmdSqlSelectZeroSslCertificate => @"
 Select
-    ZSC.Id As ZeroSslCertificateId
+    ZSC.Id
     , ZSC.ZeroSslUserId
     , ZSC.CertificateId
     , ZSC.Domain

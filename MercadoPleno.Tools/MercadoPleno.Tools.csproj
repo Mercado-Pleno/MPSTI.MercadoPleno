@@ -4,10 +4,6 @@
 		<AzureFunctionsVersion>v4</AzureFunctionsVersion>
 	</PropertyGroup>
 	<ItemGroup>
-	  <Compile Include="..\..\..\MPSTI.PlenoSoft.PlenoInvestidor\src\PlenoInvestidor.CrossProject\Extensions\AggregatorExtension.cs" Link="Application\Code\AggregatorExtension.cs" />
-	  <Compile Include="..\..\..\MPSTI.PlenoSoft.PlenoInvestidor\src\PlenoInvestidor.CrossProject\Extensions\IDataReaderExtension.cs" Link="Application\Code\IDataReaderExtension.cs" />
-	</ItemGroup>
-	<ItemGroup>
 		<PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
 		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.OpenApi" Version="0.7.2-preview" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />

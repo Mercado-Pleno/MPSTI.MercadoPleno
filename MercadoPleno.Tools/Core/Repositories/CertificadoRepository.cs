@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using GestaoApolices.Functions.Implantacao.Repositorio.Abstracao;
 using MercadoPleno.Tools.Application.Abstracao;
 using MercadoPleno.Tools.Core.Domains;
 using MercadoPleno.Tools.Core.Queries;
@@ -17,51 +16,27 @@ namespace MercadoPleno.Tools.Core.Repositories
 
 		public async Task<Usuario> ObterUsuarioZeroSsl(string userName)
 		{
+			var joinner = new CertificadoJoinner();
 			using var connection = GetService<IDbConnection>();
-			using var dataReader = await connection.ExecuteReaderAsync(CertificadoQuery.CmdSqlSelectUsuariosZeroSslPorUserName, param: new { userName });
+			await connection.QueryAsync<Usuario, CsrConfig, ZeroSslUser, ZeroSslCertificate, bool>(
+				sql: CertificadoQuery.CmdSqlSelectUsuariosZeroSslPorUserName,
+				param: new { userName },
+				map: joinner.Map
+			);
 
-			return ObterUsuariosZeroSsl(dataReader).SingleOrDefault();
+			return joinner.Build().FirstOrDefault();
 		}
 
 		public async Task<IEnumerable<Usuario>> ObterUsuariosZeroSsl()
 		{
+			var joinner = new CertificadoJoinner();
 			using var connection = GetService<IDbConnection>();
-			using var dataReader = await connection.ExecuteReaderAsync(CertificadoQuery.CmdSqlSelectUsuariosZeroSsl);
-			return ObterUsuariosZeroSsl(dataReader);
-		}
-
-		private IEnumerable<Usuario> ObterUsuariosZeroSsl(IDataReader dataReader)
-		{
-			var usuarios = dataReader.CreateObjects<Usuario, CsrConfig, ZeroSslUser, ZeroSslCertificate>(
-				groupBy1: u => u.UsuarioId,
-				groupBy2: u => u.UsuarioId,
-				groupBy3: u => u.ZeroSslUserId,
-				groupBy4: u => u.Domain,
-				mapJoins: mapJoin
+			await connection.QueryAsync<Usuario, CsrConfig, ZeroSslUser, ZeroSslCertificate, bool>(
+				sql: CertificadoQuery.CmdSqlSelectUsuariosZeroSsl,
+				map: joinner.Map
 			);
 
-			dataReader.Close();
-
-			return usuarios;
-
-			void mapJoin(Usuario usuario, List<CsrConfig> empresas, List<ZeroSslUser> zeroSslUsers, List<ZeroSslCertificate> zeroSslCertificates)
-			{
-				var empresa = empresas.FirstOrDefault(e => e.UsuarioId == usuario.UsuarioId);
-				empresa.Usuario ??= usuario;
-				usuario.ZeroSslConfig ??= empresa;
-
-				foreach (var zeroSslUser in zeroSslUsers.Where(e => e.UsuarioId == usuario.UsuarioId))
-				{
-					zeroSslUser.Usuario = usuario;
-					usuario.ZeroSslUsers.Add(zeroSslUser);
-
-					foreach (var zeroSslCertificate in zeroSslCertificates.Where(c => c.ZeroSslUserId == zeroSslUser.ZeroSslUserId && !string.IsNullOrWhiteSpace(c.Domain)))
-					{
-						zeroSslCertificate.ZeroSslUser = zeroSslUser;
-						zeroSslUser.ZeroSslCertificates.Add(zeroSslCertificate);
-					}
-				}
-			}
+			return joinner.Build();
 		}
 
 		public async Task Substituir(ZeroSslCertificate certificate)
@@ -75,6 +50,52 @@ namespace MercadoPleno.Tools.Core.Repositories
 		{
 			using var connection = GetService<IDbConnection>();
 			await connection.ExecuteAsync(CertificadoQuery.CmdSqlUpdateZeroSslCertificate, param: certificate);
+		}
+	}
+
+	public class CertificadoJoinner
+	{
+		private readonly List<Usuario> Usuarios = new List<Usuario>();
+		private readonly List<CsrConfig> CsrConfigs = new List<CsrConfig>();
+		private readonly List<ZeroSslUser> ZeroSslUsers = new List<ZeroSslUser>();
+		private readonly List<ZeroSslCertificate> ZeroSslCertificates = new List<ZeroSslCertificate>();
+
+		public bool Map(Usuario usuario, CsrConfig csrConfig, ZeroSslUser zeroSslUser, ZeroSslCertificate zeroSslCertificate)
+		{
+			if (usuario != null) Usuarios.Add(usuario);
+			if (csrConfig != null) CsrConfigs.Add(csrConfig);
+			if (zeroSslUser != null) ZeroSslUsers.Add(zeroSslUser);
+			if (zeroSslCertificate != null) ZeroSslCertificates.Add(zeroSslCertificate);
+			return true;
+		}
+
+		public IEnumerable<Usuario> Build()
+		{
+			var usuarios = Usuarios.DistinctBy(u => u.Id).ToArray();
+
+			foreach (var usuario in usuarios)
+				mapJoin(usuario, CsrConfigs, ZeroSslUsers, ZeroSslCertificates);
+
+			return usuarios;
+		}
+
+		private void mapJoin(Usuario usuario, List<CsrConfig> empresas, List<ZeroSslUser> zeroSslUsers, List<ZeroSslCertificate> zeroSslCertificates)
+		{
+			var empresa = empresas.FirstOrDefault(e => e.UsuarioId == usuario.Id);
+			empresa.Usuario ??= usuario;
+			usuario.ZeroSslConfig ??= empresa;
+
+			foreach (var zeroSslUser in zeroSslUsers.Where(e => e.UsuarioId == usuario.Id))
+			{
+				zeroSslUser.Usuario = usuario;
+				usuario.ZeroSslUsers.Add(zeroSslUser);
+
+				foreach (var zeroSslCertificate in zeroSslCertificates.Where(c => c.ZeroSslUserId == zeroSslUser.Id && !string.IsNullOrWhiteSpace(c.Domain)))
+				{
+					zeroSslCertificate.ZeroSslUser = zeroSslUser;
+					zeroSslUser.ZeroSslCertificates.Add(zeroSslCertificate);
+				}
+			}
 		}
 	}
 }

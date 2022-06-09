@@ -82,7 +82,7 @@ namespace MercadoPleno.Tools.Core.Services
 				var zeroSslValidaRequest = new ZeroSslValidaRequest { EMail = zeroSslCertificadoResponse.GetValidationEMail() };
 				var zeroSslValidaResponse = await _zeroSslProxy.ValidarCertificado(user.ApiKey, zeroSslCertificadoResponse.Id, zeroSslValidaRequest);
 
-				csrResponse.ZeroSslUserId = user.ZeroSslUserId;
+				csrResponse.ZeroSslUserId = user.Id;
 				csrResponse.CertificateId = zeroSslCertificadoResponse.Id;
 				csrResponse.Status = zeroSslValidaResponse.Status;
 				return csrResponse;

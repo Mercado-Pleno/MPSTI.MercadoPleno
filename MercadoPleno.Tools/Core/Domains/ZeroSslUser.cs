@@ -4,8 +4,8 @@ namespace MercadoPleno.Tools.Core.Domains
 {
 	public class ZeroSslUser
 	{
+		public long Id { get; set; }
 		public long UsuarioId { get; set; }
-		public long ZeroSslUserId { get; set; }
 		public string Login { get; set; }
 		public string Password { get; set; }
 		public string ApiKey { get; set; }
