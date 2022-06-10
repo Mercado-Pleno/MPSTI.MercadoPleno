@@ -13,11 +13,7 @@ namespace MercadoPleno.Tools.Certificados.Timer
 	{
 		public VerificaCertificado(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
-		//[FunctionName("RunOnStartup")]
-		public async Task RunOnStartup([TimerTrigger("1 1 1 1 1 *", RunOnStartup = true)] TimerInfo timer, ILogger log)
-		{
-			await RenovarCertificadoExpirando(timer, log);
-		}
+		//[FunctionName("RunOnStartup")] public async Task RunOnStartup([TimerTrigger("1 1 1 1 1 *", RunOnStartup = true)] TimerInfo timer, ILogger log) => await RenovarCertificadoExpirando(timer, log);
 
 		[FunctionName("RemoverCertificados")]
 		public async Task RemoverCertificados([TimerTrigger("0 0 0 * * *")] TimerInfo timer, ILogger log)
@@ -34,7 +30,6 @@ namespace MercadoPleno.Tools.Certificados.Timer
 			var certificados = await renovarCertificadoService.RenovarCertificadoExpirando();
 			log.LogInformation("{count}", certificados.Count);
 		}
-
 
 		[FunctionName("AtualizarCertificados")]
 		public async Task AtualizarCertificados([TimerTrigger("0 */5 * * * *")] TimerInfo timer, ILogger log)
