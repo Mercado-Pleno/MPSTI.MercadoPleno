@@ -36,9 +36,9 @@ namespace MercadoPleno.Tools.Application
 			builder.Services.Configure<IConfiguration>(_configuration);
 			builder.Services.AddLogging();
 
-			builder.Services.AddHttpClient();
 			builder.Services.AddHttpClient("CsrGenerator", http => http.BaseAddress = new Uri("https://csrgenerator.com"));
 			builder.Services.AddHttpClient("ZeroSsl", http => http.BaseAddress = new Uri("https://api.zerossl.com"));
+			builder.Services.AddHttpClient();
 
 			builder.Services.AddTransient<IDbConnection>(sp => new SqlConnection(_configuration.GetConnectionString("MercadoPleno")));
 			builder.Services.AddTransient<CsrGenerator>();

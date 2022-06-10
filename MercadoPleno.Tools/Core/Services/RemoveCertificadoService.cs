@@ -1,5 +1,6 @@
 ﻿using MercadoPleno.Tools.Core.Domains;
 using MercadoPleno.Tools.Core.Proxies.ZeroSSL.Dtos;
+using MercadoPleno.Tools.Core.Util;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

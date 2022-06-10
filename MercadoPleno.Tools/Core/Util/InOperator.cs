@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace MercadoPleno.Tools.Core.Services
+namespace MercadoPleno.Tools.Core.Util
 {
 	public static class InOperator
 	{

@@ -13,10 +13,10 @@ namespace MercadoPleno.Tools.Certificados.Timer
 	{
 		public VerificaCertificado(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
-		[FunctionName("RunOnStartup")]
-		public async Task RunOnStartup([TimerTrigger("0 */5 * * * *", RunOnStartup = true)] TimerInfo timer, ILogger log)
+		//[FunctionName("RunOnStartup")]
+		public async Task RunOnStartup([TimerTrigger("1 1 1 1 1 *", RunOnStartup = true)] TimerInfo timer, ILogger log)
 		{
-			await Task.CompletedTask;
+			await RenovarCertificadoExpirando(timer, log);
 		}
 
 		[FunctionName("RemoverCertificados")]
