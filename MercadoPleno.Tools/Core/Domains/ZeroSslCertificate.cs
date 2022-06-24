@@ -1,8 +1,9 @@
 ﻿using MercadoPleno.Tools.Core.Proxies.ZeroSSL.Dtos;
+using MercadoPleno.Tools.Core.Util;
 
 namespace MercadoPleno.Tools.Core.Domains
 {
-	public class ZeroSslCertificate
+	public class ZeroSslCertificate : IUnique
 	{
 		public long Id { get; set; }
 		public long ZeroSslUserId { get; set; }

@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using MercadoPleno.Tools.Core.Util;
+using System.Collections.Generic;
 
 namespace MercadoPleno.Tools.Core.Domains
 {
-	public class ZeroSslUser
+	public class ZeroSslUser : IUnique
 	{
 		public long Id { get; set; }
 		public long UsuarioId { get; set; }

@@ -1,7 +1,10 @@
-﻿namespace MercadoPleno.Tools.Core.Domains
+﻿using MercadoPleno.Tools.Core.Util;
+
+namespace MercadoPleno.Tools.Core.Domains
 {
-	public class CsrConfig : ICsrRequest
+	public class CsrConfig : IUnique, ICsrRequest
 	{
+		public long Id { get; set; }
 		public long UsuarioId { get; set; }
 		public string Pais { get; set; }
 		public string Estado { get; set; }

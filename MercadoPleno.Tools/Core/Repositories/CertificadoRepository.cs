@@ -2,6 +2,7 @@
 using MercadoPleno.Tools.Application.Abstracao;
 using MercadoPleno.Tools.Core.Domains;
 using MercadoPleno.Tools.Core.Queries;
+using MercadoPleno.Tools.Core.Util;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -55,31 +56,29 @@ namespace MercadoPleno.Tools.Core.Repositories
 
 	public class CertificadoJoinner
 	{
-		private readonly List<Usuario> Usuarios = new List<Usuario>();
-		private readonly List<CsrConfig> CsrConfigs = new List<CsrConfig>();
-		private readonly List<ZeroSslUser> ZeroSslUsers = new List<ZeroSslUser>();
-		private readonly List<ZeroSslCertificate> ZeroSslCertificates = new List<ZeroSslCertificate>();
+		private readonly UniqueList<Usuario> Usuarios = new UniqueList<Usuario>();
+		private readonly UniqueList<CsrConfig> CsrConfigs = new UniqueList<CsrConfig>();
+		private readonly UniqueList<ZeroSslUser> ZeroSslUsers = new UniqueList<ZeroSslUser>();
+		private readonly UniqueList<ZeroSslCertificate> ZeroSslCertificates = new UniqueList<ZeroSslCertificate>();
 
 		public bool Map(Usuario usuario, CsrConfig csrConfig, ZeroSslUser zeroSslUser, ZeroSslCertificate zeroSslCertificate)
 		{
-			if (usuario != null) Usuarios.Add(usuario);
-			if (csrConfig != null) CsrConfigs.Add(csrConfig);
-			if (zeroSslUser != null) ZeroSslUsers.Add(zeroSslUser);
-			if (zeroSslCertificate != null) ZeroSslCertificates.Add(zeroSslCertificate);
+			Usuarios.Add(usuario);
+			CsrConfigs.Add(csrConfig);
+			ZeroSslUsers.Add(zeroSslUser);
+			ZeroSslCertificates.Add(zeroSslCertificate);
 			return true;
 		}
 
 		public IEnumerable<Usuario> Build()
 		{
-			var usuarios = Usuarios.DistinctBy(u => u.Id).ToArray();
-
-			foreach (var usuario in usuarios)
+			foreach (var usuario in Usuarios)
 				mapJoin(usuario, CsrConfigs, ZeroSslUsers, ZeroSslCertificates);
 
-			return usuarios;
+			return Usuarios;
 		}
 
-		private void mapJoin(Usuario usuario, List<CsrConfig> empresas, List<ZeroSslUser> zeroSslUsers, List<ZeroSslCertificate> zeroSslCertificates)
+		private void mapJoin(Usuario usuario, IEnumerable<CsrConfig> empresas, IEnumerable<ZeroSslUser> zeroSslUsers, IEnumerable<ZeroSslCertificate> zeroSslCertificates)
 		{
 			var empresa = empresas.FirstOrDefault(e => e.UsuarioId == usuario.Id);
 			empresa.Usuario ??= usuario;

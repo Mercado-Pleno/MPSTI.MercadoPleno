@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using MercadoPleno.Tools.Core.Util;
+using System.Collections.Generic;
 
 namespace MercadoPleno.Tools.Core.Domains
 {
-	public class Usuario
+	public class Usuario : IUnique
 	{
 		public long Id { get; set; }
 		public string Username { get; set; }
